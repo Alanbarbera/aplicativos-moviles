@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal del Cliente - Sistema de Riego</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="manifest" href="manifest.json">
+    <script src="js/lib/jspdf.min.js"></script>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-container" id="loginScreen">
+        <div class="login-box">
+            <h1>🌱 Portal del Cliente</h1>
+            <h2>Sistema de Riego</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Usuario</label>
+                    <input type="text" id="username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+            </form>
+            <p class="demo-info">
+                Usuario demo: <strong>cliente1</strong> / Pass: <strong>1234</strong>
+            </p>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="app-container" id="appContainer">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <h1>🌱 Portal del Cliente - Sistema de Riego</h1>
+                <div class="user-info">
+                    <span id="userNameDisplay"></span>
+                    <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-container">
+            <!-- Navigation -->
+            <div class="navigation">
+                <div class="nav-buttons">
+                    <button class="nav-btn active" onclick="showSection('dashboard')">📊 Dashboard</button>
+                    <button class="nav-btn" onclick="showSection('pedidos')">📦 Mis Pedidos</button>
+                    <button class="nav-btn" onclick="showSection('nuevo-pedido')">➕ Nuevo Pedido</button>
+                    <button class="nav-btn" onclick="showSection('materiales')">📋 Materiales Faltantes</button>
+                    <button class="nav-btn" onclick="showSection('presupuestos')">💰 Presupuestos</button>
+                    <button class="nav-btn" onclick="showSection('consultas')">💬 Consultas</button>
+                    <button class="nav-btn" onclick="showSection('contacto')">📞 Contacto</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="content-section active">
+                <h2>Dashboard</h2>
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3>Pedidos Activos</h3>
+                        <div class="number" id="pedidosActivos">0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Pedidos Completados</h3>
+                        <div class="number" id="pedidosCompletados">0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Presupuestos Pendientes</h3>
+                        <div class="number" id="presupuestosPendientes">0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Consultas Abiertas</h3>
+                        <div class="number" id="consultasAbiertas">0</div>
+                    </div>
+                </div>
+
+                <h3>Últimos Pedidos</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th>Total</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ultimosPedidosTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Mis Pedidos Section -->
+            <div id="pedidos" class="content-section">
+                <h2>Mis Pedidos</h2>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <input type="text" id="searchPedidos" placeholder="Buscar por ID o descripción..." onkeyup="filtrarPedidos()">
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th>Descripción</th> <!-- Nueva columna para descripción -->
+                                <th>Productos</th>
+                                <th>Total</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pedidosTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Nuevo Pedido Section -->
+            <div id="nuevo-pedido" class="content-section">
+                <h2>Crear Nuevo Pedido</h2>
+                <div id="alertContainer"></div>
+                <form id="nuevoPedidoForm">
+                    <div class="form-group">
+                        <label>Tipo de Proyecto</label>
+                        <select id="tipoProyecto" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="residencial">Residencial</option>
+                            <option value="comercial">Comercial</option>
+                            <option value="agricola">Agrícola</option>
+                            <option value="industrial">Industrial</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descripción del Proyecto</label>
+                        <textarea id="descripcionProyecto" rows="4" required placeholder="Describe tu proyecto de riego..."></textarea>
+                    </div>
+
+                    <h3>Productos</h3>
+                    <div class="form-group">
+                        <label>Seleccionar Producto</label>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="productoSelect" style="flex: 1;">
+                                <option value="">Seleccionar producto...</option>
+                            </select>
+                            <input type="number" id="cantidadProducto" placeholder="Cantidad" min="1" value="1" style="width: 100px;">
+                            <button type="button" class="add-product-btn" onclick="agregarProductoAPedido()">Agregar</button>
+                        </div>
+                    </div>
+
+                    <div id="productosSeleccionados" class="product-list"></div>
+
+                    <div class="form-group">
+                        <label>Notas Adicionales</label>
+                        <textarea id="notasPedido" rows="3" placeholder="Cualquier información adicional..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Enviar Pedido</button>
+                </form>
+            </div>
+
+            <!-- Materiales Faltantes Section -->
+            <div id="materiales" class="content-section">
+                <h2>Materiales Faltantes en tus Pedidos</h2>
+                <p style="margin-bottom: 20px;">Aquí puedes ver qué materiales faltan para completar tus pedidos en proceso.</p>
+                <div id="materialesFaltantesContainer"></div>
+            </div>
+
+            <!-- Presupuestos Section -->
+            <div id="presupuestos" class="content-section">
+                <h2>Mis Presupuestos</h2>
+                <button class="btn btn-primary" onclick="abrirModalPresupuesto()" style="margin-bottom: 20px;">Solicitar Nuevo Presupuesto</button>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha Solicitud</th>
+                                <th>Descripción</th>
+                                <th>Estado</th>
+                                <th>Monto</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="presupuestosTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Consultas Section -->
+            <div id="consultas" class="content-section">
+                <h2>Consultas y Mensajes</h2>
+                <button class="btn btn-primary" onclick="abrirModalConsulta()" style="margin-bottom: 20px;">Nueva Consulta</button>
+                <div id="consultasContainer"></div>
+            </div>
+
+            <!-- Contacto Section -->
+            <div id="contacto" class="content-section">
+                <h2>Contacto</h2>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <span>📧</span>
+                        <div>
+                            <strong>Email:</strong><br>
+                            ventas@sistemariego.com
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span>📞</span>
+                        <div>
+                            <strong>Teléfono:</strong><br>
+                            +54 9 223 123-4567
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span>📍</span>
+                        <div>
+                            <strong>Dirección:</strong><br>
+                            Av. Independencia 1234, Mar del Plata, Buenos Aires
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span>🕒</span>
+                        <div>
+                            <strong>Horario de Atención:</strong><br>
+                            Lunes a Viernes: 9:00 - 18:00<br>
+                            Sábados: 9:00 - 13:00
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 30px;">Contacto Directo por WhatsApp</h3>
+                <p style="margin: 15px 0;">¿Tenés alguna consulta urgente? Contactanos directamente:</p>
+                <a href="https://wa.me/5492231234567?text=Hola%2C%20necesito%20consultar%20sobre%20mi%20pedido" 
+                   target="_blank" 
+                   class="whatsapp-btn">
+                    <span style="font-size: 24px;">📱</span>
+                    Chatear por WhatsApp
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Ver Detalles de Pedido -->
+    <div id="modalDetallePedido" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Detalle del Pedido</h2>
+                <button class="close-modal" onclick="cerrarModal('modalDetallePedido')">&times;</button>
+            </div>
+            <div id="detallePedidoContent"></div>
+        </div>
+    </div>
+
+    <!-- Modal para Nueva Consulta -->
+    <div id="modalConsulta" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nueva Consulta</h2>
+                <button class="close-modal" onclick="cerrarModal('modalConsulta')">&times;</button>
+            </div>
+            <form id="consultaForm">
+                <div class="form-group">
+                    <label>Asunto</label>
+                    <input type="text" id="asuntoConsulta" required>
+                </div>
+                <div class="form-group">
+                    <label>Mensaje</label>
+                    <textarea id="mensajeConsulta" rows="5" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Enviar Consulta</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Nuevo Presupuesto -->
+    <div id="modalPresupuesto" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Solicitar Presupuesto</h2>
+                <button class="close-modal" onclick="cerrarModal('modalPresupuesto')">&times;</button>
+            </div>
+            <form id="presupuestoForm">
+                <div class="form-group">
+                    <label>Tipo de Proyecto</label>
+                    <select id="tipoProyectoPresupuesto" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="residencial">Residencial</option>
+                        <option value="comercial">Comercial</option>
+                        <option value="agricola">Agrícola</option>
+                        <option value="industrial">Industrial</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Área a Regar (m²)</label>
+                    <input type="number" id="areaRiego" required min="1">
+                </div>
+                <div class="form-group">
+                    <label>Descripción del Proyecto</label>
+                    <textarea id="descripcionPresupuesto" rows="5" required placeholder="Describe detalladamente tu proyecto..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Solicitar Presupuesto</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Nuevo: Modal genérico para alertas y confirmaciones -->
+    <div id="modalAlert" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="alertTitle">Mensaje</h2>
+                <button class="close-modal" onclick="cerrarModal('modalAlert')">&times;</button>
+            </div>
+            <p id="alertMessage"></p>
+            <div class="text-center">
+                <button id="alertOkBtn" class="btn btn-primary">OK</button>
+                <button id="alertCancelBtn" class="btn btn-secondary hidden">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/pedidos.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(() => console.log('Service Worker registrado'))
+                .catch(err => console.error('Error al registrar SW:', err));
+        }
+    </script>
+</body>
+</html>
